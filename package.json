@@ -1,0 +1,12 @@
+{
+  "name": "rootkook",
+  "version": "1.0.0",
+  "private": true,
+  "description": "RootKook: an AI kitchen interviewer that preserves family recipes and the stories behind them.",
+  "type": "module",
+  "scripts": {
+    "dev": "node server.js",
+    "start": "node server.js"
+  },
+  "engines": { "node": ">=18" }
+}
