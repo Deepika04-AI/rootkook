@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="RootKook helps families record an elder's heritage recipes and the stories behind them, in their own language, and cook them together.">
+<meta name="theme-color" content="#e0a21f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e0a21f'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='700' font-size='18' text-anchor='middle' fill='%2317283a'%3ER%3C/text%3E%3C/svg%3E">
+<title>RootKook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Kalam:wght@400;700&display=swap">
+<style>
+/* Layout: an app shell with a tab bar; recipes render as ruled index cards (blue lines, red margin) like the ones elders kept in a tin. */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --sunk:#e9edf1; --ink:#17283a; --muted:#566476; --line:#d6dde5;
+  --rule:#cfdcef; --margin:#d4513b; --accent:#e0a21f; --accent-ink:#7a5000; --on-accent:#1d1300;
+  --ok:#2f7d4f; --warn:#b4552a; --hand:#20406b;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-hand:"Kalam", "Segoe Print", "Comic Sans MS", cursive;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f151c; --surface:#17202a; --sunk:#111922; --ink:#e7edf3; --muted:#9aa9b9; --line:#2a3745;
+  --rule:#22344a; --margin:#e06a52; --accent:#f0b53c; --accent-ink:#f5c868; --on-accent:#1d1300;
+  --ok:#5cc489; --warn:#ec8a5e; --hand:#a9c6f0; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0f151c; --surface:#17202a; --sunk:#111922; --ink:#e7edf3; --muted:#9aa9b9; --line:#2a3745;
+  --rule:#22344a; --margin:#e06a52; --accent:#f0b53c; --accent-ink:#f5c868; --on-accent:#1d1300;
+  --ok:#5cc489; --warn:#ec8a5e; --hand:#a9c6f0; color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:0 64px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:1.6rem;font-weight:800}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.label{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line)}
+.top-inner{max-width:1120px;margin:0 auto;padding:12px 16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:10px;margin-right:auto}
+.brand b{font-family:var(--f-display);font-weight:800;font-size:1.45rem;letter-spacing:-.01em}
+.brand b span{color:var(--margin)}
+.brand i{font-style:normal;color:var(--muted);font-size:.9rem}
+nav.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:999px}
+nav.tabs button{border:0;background:transparent;padding:7px 14px;border-radius:999px;cursor:pointer;font-weight:700;color:var(--muted)}
+nav.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .12)}
+nav.tabs .count{font-weight:400;color:var(--muted);margin-left:4px;font-variant-numeric:tabular-nums}
+
+/* buttons & fields */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:9px 16px;border-radius:999px;cursor:pointer;font-weight:700;text-decoration:none;line-height:1.2}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{filter:brightness(1.05)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent-ink);padding-inline:8px}
+.btn.danger{color:var(--warn)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field label{font-weight:700;font-size:.9rem}
+.field input,.field textarea,.field select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 11px;width:100%}
+.field textarea{resize:vertical;min-height:120px;line-height:1.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.grid2{grid-template-columns:1fr}}
+
+.view{padding-top:28px}
+.intro{display:flex;flex-direction:column;gap:8px;max-width:62ch;margin-bottom:22px}
+.intro h1{font-size:clamp(1.8rem,4.5vw,2.6rem);font-weight:800;letter-spacing:-.015em}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.note{background:var(--sunk);border-radius:10px;padding:10px 14px;font-size:.92rem;color:var(--muted)}
+.note.warn{color:var(--warn)}
+
+/* capture */
+.capture{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:900px){.capture{grid-template-columns:1fr}}
+.mode{display:flex;gap:6px;flex-wrap:wrap}
+.mode button{border:1px solid var(--line);background:transparent;border-radius:8px;padding:8px 12px;cursor:pointer;font-weight:700;color:var(--muted)}
+.mode button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);background:var(--sunk)}
+.chat{display:flex;flex-direction:column;gap:10px;max-height:420px;overflow-y:auto;padding:4px 2px}
+.bubble{max-width:86%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+.bubble.ai{background:var(--sunk);align-self:flex-start;border-bottom-left-radius:4px}
+.bubble.me{background:var(--surface);border:1px solid var(--line);align-self:flex-end;border-bottom-right-radius:4px;font-family:var(--f-hand);font-size:1.08rem;color:var(--hand)}
+.bubble .who{display:block;font-family:var(--f-body);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:2px}
+.composer{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;justify-content:flex-end}
+.composer textarea{flex:1 1 240px;min-height:52px;max-height:160px;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.voicebar{display:flex;gap:10px 18px;flex-wrap:wrap;align-items:center;background:var(--sunk);border-radius:10px;padding:10px 14px}
+.voicebar label{display:flex;gap:8px;align-items:center;cursor:pointer;font-size:.92rem}
+.voicebar input{width:18px;height:18px;accent-color:var(--accent)}
+.bubble .en{display:block;margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);color:var(--muted);font-size:.92rem}
+.bubble .play{border:0;background:transparent;color:var(--accent-ink);font-weight:700;font-size:.82rem;cursor:pointer;padding:4px 0 0;display:block}
+.btn.mic[aria-pressed="true"]{background:var(--margin);border-color:var(--margin);color:#fff}
+.tip{font-size:.85rem;color:var(--muted)}
+.status{font-size:.9rem;color:var(--muted);min-height:1.4em}
+.status.err{color:var(--warn)}
+.dots::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:dots 1.2s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+@media (prefers-reduced-motion:reduce){.dots::after{animation:none;content:"..."}}
+
+.preview h3{margin-bottom:4px}
+.steps-how{display:flex;flex-direction:column;gap:12px;margin:0;padding:0;list-style:none;counter-reset:s}
+.steps-how li{display:grid;grid-template-columns:28px 1fr;gap:10px;counter-increment:s}
+.steps-how li::before{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--sunk);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+
+/* index card */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:6px;box-shadow:0 1px 0 var(--line),0 10px 24px -14px rgb(0 0 0 / .35);overflow:hidden;min-width:0}
+.card-head{padding:22px 24px 16px;border-bottom:2px solid var(--margin);display:flex;flex-direction:column;gap:6px}
+.card-head h2{font-size:clamp(1.6rem,4vw,2.3rem);letter-spacing:-.015em}
+.native{font-family:var(--f-hand);font-size:1.25rem;color:var(--hand)}
+.byline{color:var(--muted)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:.8rem;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted);background:var(--bg)}
+.chip.ex{border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.ruled{font-family:var(--f-hand);font-size:1.15rem;color:var(--hand);line-height:32px;padding:6px 24px 10px 52px;position:relative;
+  background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,var(--rule) 31px,var(--rule) 32px);background-position:0 6px}
+.ruled::before{content:"";position:absolute;left:36px;top:0;bottom:0;width:1.5px;background:var(--margin);opacity:.55}
+.ruled p+p{margin-top:0}
+.ruled p{margin-bottom:32px}
+.ruled p:last-child{margin-bottom:0}
+.card-body{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.3fr);gap:0}
+@media (max-width:820px){.card-body{grid-template-columns:1fr}}
+.sec{padding:20px 24px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec + .sec{border-left:1px solid var(--line)}
+@media (max-width:820px){.sec + .sec{border-left:0;border-top:1px solid var(--line)}}
+.why{padding:18px 24px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.ing{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ing li{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.ing li:last-child{border-bottom:0}
+.ing .name{font-weight:700}
+.ing .em{font-family:var(--f-hand);color:var(--hand);text-align:right;font-size:1.05rem}
+.ing .ap{grid-column:2;text-align:right;font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.ing .sub{grid-column:1 / -1;font-size:.86rem;color:var(--muted)}
+.ing .sub b{color:var(--accent-ink)}
+.method{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:16px;counter-reset:m}
+.method li{display:grid;grid-template-columns:34px 1fr;gap:12px;counter-increment:m}
+.method li::before{content:counter(m);font-family:var(--f-display);font-weight:800;font-size:1.4rem;color:var(--margin);line-height:1.1}
+.cue{font-family:var(--f-hand);color:var(--hand);font-size:1.02rem;margin-top:2px}
+.kid{font-size:.88rem;margin-top:4px;color:var(--ok)}
+.kid b{font-weight:700}
+.mins{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.tips{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.card-actions{padding:14px 24px;border-top:1px solid var(--line);background:var(--sunk);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.recipe-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start}
+@media (max-width:980px){.recipe-layout{grid-template-columns:1fr}}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.gap-item{display:flex;flex-direction:column;gap:6px;padding-bottom:12px;border-bottom:1px dashed var(--line)}
+.gap-item:last-of-type{border-bottom:0}
+.gap-item .q{font-weight:700}
+.gap-item .w{font-size:.85rem;color:var(--muted)}
+.gap-item input{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+.ask .chat{max-height:300px}
+
+/* cookbook & community lists */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+.toolbar input[type=search]{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:9px 16px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--margin);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:8px;cursor:pointer;text-align:left;min-width:0}
+.tile:hover{border-color:var(--muted);border-top-color:var(--margin)}
+.tile h3{font-size:1.15rem}
+.tile .q{font-family:var(--f-hand);color:var(--hand);font-size:1rem;line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.tile .meta{font-size:.85rem;color:var(--muted);margin-top:auto}
+.empty{border:2px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;color:var(--muted);display:flex;flex-direction:column;gap:10px;align-items:center}
+
+/* cook-along overlay */
+.cook{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 14px)}
+.cook-top{display:flex;align-items:center;gap:12px;max-width:900px;width:100%;margin:0 auto}
+.cook-top .title{font-family:var(--f-display);font-weight:700;margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.progress{height:6px;background:var(--sunk);border-radius:99px;max-width:900px;width:100%;margin:12px auto 0;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.cook-main{flex:1;overflow-y:auto;max-width:900px;width:100%;margin:0 auto;padding:28px 0;display:flex;flex-direction:column;gap:18px}
+.cook-step{font-size:clamp(1.4rem,3.6vw,2.2rem);line-height:1.35;font-weight:700;font-family:var(--f-display)}
+.cook-cue{font-family:var(--f-hand);color:var(--hand);font-size:clamp(1.15rem,2.6vw,1.5rem)}
+.cook-kid{background:var(--sunk);border-left:4px solid var(--ok);padding:12px 16px;border-radius:6px}
+.timer{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.timer .t{font-size:2.4rem;font-weight:700;font-variant-numeric:tabular-nums;font-family:var(--f-display)}
+.timer.done .t{color:var(--margin)}
+.checklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.checklist label{display:flex;gap:12px;align-items:flex-start;font-size:1.1rem;cursor:pointer}
+.checklist input{width:22px;height:22px;margin-top:3px;accent-color:var(--accent)}
+.checklist .em{font-family:var(--f-hand);color:var(--hand)}
+.cook-nav{display:flex;gap:10px;max-width:900px;width:100%;margin:0 auto;justify-content:space-between}
+.cook-nav .btn{padding:14px 26px;font-size:1.05rem}
+
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:700;z-index:60;max-width:calc(100% - 32px)}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--sunk);padding:8px 12px;border-radius:10px}
+footer{max-width:1120px;margin:0 auto;padding:24px 16px 40px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+@media print{header.top,footer,.side,.card-actions,#back,.toast{display:none!important}.recipe-layout{display:block}.card{box-shadow:none;border:0}body{background:#fff}}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand"><b>Root<span>Kook</span></b><i>Keep the recipe. Keep the story.</i></div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" id="tab-capture" data-view="capture" aria-selected="true">Record</button>
+      <button role="tab" id="tab-cookbook" data-view="cookbook" aria-selected="false">My cookbook<span class="count" id="count-mine"></span></button>
+      <button role="tab" id="tab-community" data-view="community" aria-selected="false">Community table</button>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- RECORD -->
+<section class="view" id="view-capture">
+  <div class="intro">
+    <span class="label">Record a recipe with an elder</span>
+    <h1>Sit with them while they cook. RootKook asks the questions and writes it down.</h1>
+    <p class="muted">Let the AI interview your elder one question at a time, out loud and in their own language, or paste what they already told you (a voice-note transcript, a WhatsApp message, a photo of their handwritten card). You get a recipe card that keeps their words, their measures, and the story behind the dish.</p>
+  </div>
+  <div class="capture">
+    <div class="panel">
+      <div class="grid2">
+        <div class="field"><label for="f-elder">Who is teaching?</label><input id="f-elder" placeholder="e.g. Kamala"></div>
+        <div class="field"><label for="f-rel">They are your…</label><input id="f-rel" placeholder="e.g. grandmother (Paati)"></div>
+        <div class="field"><label for="f-place">Where the recipe comes from</label><input id="f-place" placeholder="e.g. Madurai, Tamil Nadu"></div>
+        <div class="field"><label for="f-lang">Interview in</label><select id="f-lang"><option value="en-US">English</option><option value="ta-IN">Tamil</option><option value="hi-IN">Hindi</option><option value="te-IN">Telugu</option><option value="ml-IN">Malayalam</option><option value="kn-IN">Kannada</option><option value="bn-IN">Bengali</option><option value="mr-IN">Marathi</option><option value="gu-IN">Gujarati</option><option value="pa-IN">Punjabi</option><option value="ur-PK">Urdu</option><option value="ne-NP">Nepali</option><option value="si-LK">Sinhala</option><option value="es-MX">Spanish</option><option value="pt-BR">Portuguese</option><option value="fr-FR">French</option><option value="it-IT">Italian</option><option value="pl-PL">Polish</option><option value="ru-RU">Russian</option><option value="uk-UA">Ukrainian</option><option value="el-GR">Greek</option><option value="ar-SA">Arabic</option><option value="fa-IR">Persian (Farsi)</option><option value="tr-TR">Turkish</option><option value="he-IL">Hebrew</option><option value="am-ET">Amharic</option><option value="sw-KE">Swahili</option><option value="yo-NG">Yoruba</option><option value="ht-HT">Haitian Creole</option><option value="zh-CN">Mandarin Chinese</option><option value="zh-HK">Cantonese</option><option value="ko-KR">Korean</option><option value="ja-JP">Japanese</option><option value="vi-VN">Vietnamese</option><option value="fil-PH">Tagalog (Filipino)</option><option value="th-TH">Thai</option><option value="id-ID">Indonesian</option></select></div>
+      </div>
+      <div class="mode" role="group" aria-label="How to record">
+        <button id="mode-interview" aria-pressed="true">Interview them</button>
+        <button id="mode-paste" aria-pressed="false">Paste or type what they said</button>
+      </div>
+
+      <div id="pane-interview" class="col" style="display:flex;flex-direction:column;gap:12px">
+        <div class="voicebar">
+          <label for="v-speak"><input type="checkbox" id="v-speak" checked> Read questions aloud</label>
+          <label for="v-en" id="v-en-wrap"><input type="checkbox" id="v-en" checked> Show English under each question</label>
+          <span class="tip" id="v-note"></span>
+        </div>
+        <div class="chat" id="iv-chat" aria-live="polite"></div>
+        <div class="composer">
+          <textarea id="iv-input" placeholder="Type or speak their answer in their own words."></textarea>
+          <button class="btn mic" id="iv-mic" aria-pressed="false" title="Speak the answer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3" fill="none"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Speak</span></button>
+          <button class="btn" id="iv-send">Send</button>
+        </div>
+        <p class="tip" id="mic-tip"></p>
+        <div class="row">
+          <span class="status" id="iv-status"></span>
+          <button class="btn ghost" id="iv-reset" style="margin-left:auto">Start over</button>
+        </div>
+      </div>
+
+      <div id="pane-paste" hidden style="display:flex;flex-direction:column;gap:12px">
+        <div class="field">
+          <label for="f-transcript">What they said</label>
+          <textarea id="f-transcript" style="min-height:200px" placeholder="Paste a voice-note transcript or type what they told you. Rough is fine: 'First you heat the oil, not too much, then mustard seeds, wait till they dance...'"></textarea>
+        </div>
+        <div class="field" id="photo-field" hidden>
+          <label for="f-photo">Photo of a handwritten recipe card (optional)</label>
+          <input type="file" id="f-photo" accept="image/*">
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn primary" id="btn-preserve">Make the recipe card</button>
+        <span class="status" id="pv-status"></span>
+      </div>
+      <p class="note" id="ai-note" hidden></p>
+    </div>
+
+    <aside class="panel preview">
+      <div>
+        <span class="label">What you get</span>
+        <h3>A card your family can cook from in 20 years</h3>
+      </div>
+      <ol class="steps-how">
+        <li><span><b>Their words, kept.</b> The story stays in their voice. "A fistful" stays a fistful, with an approximate measure beside it.</span></li>
+        <li><span><b>Gaps flagged.</b> RootKook lists what's still unclear so you know what to ask at the next family dinner.</span></li>
+        <li><span><b>Cook-along mode.</b> Big-text steps, timers, and a safe job for each child, ages 5 to 16.</span></li>
+        <li><span><b>Ask the recipe.</b> "No curry leaves in Ohio, what now?" Answers stay true to how they cook it.</span></li>
+      </ol>
+      <button class="btn" id="open-example">Open the example card</button>
+    </aside>
+  </div>
+</section>
+
+<!-- RECIPE -->
+<section class="view" id="view-recipe" hidden>
+  <div class="row" style="margin-bottom:14px"><button class="btn ghost" id="back">← Back</button></div>
+  <div class="recipe-layout">
+    <div id="recipe-card"></div>
+    <aside class="side" id="recipe-side"></aside>
+  </div>
+</section>
+
+<!-- COOKBOOK -->
+<section class="view" id="view-cookbook" hidden>
+  <div class="intro">
+    <span class="label">My family cookbook</span>
+    <h1>Every recipe you've recorded</h1>
+    <p class="muted" id="store-note"></p>
+  </div>
+  <div class="toolbar">
+    <input type="search" id="q-mine" placeholder="Search by dish, person or place">
+    <button class="btn" id="btn-export">Back up cookbook</button>
+    <label class="btn" for="f-import" style="cursor:pointer">Restore backup</label>
+    <input type="file" id="f-import" accept="application/json,.json" hidden>
+  </div>
+  <div class="tiles" id="tiles-mine"></div>
+</section>
+
+<!-- COMMUNITY -->
+<section class="view" id="view-community" hidden>
+  <div class="intro">
+    <span class="label">Community table</span>
+    <h1>Recipes families chose to share</h1>
+    <p class="muted">Shared only with the elder's permission. Open one to cook along or save a copy to your own cookbook.</p>
+  </div>
+  <div class="toolbar"><input type="search" id="q-comm" placeholder="Search by dish, region or occasion"></div>
+  <div class="tiles" id="tiles-comm"></div>
+</section>
+</div>
+
+<footer>RootKook connects elders and children through cooking. Built by Team Cosmo, NYU Tandon. AI answers come from Claude, so check quantities with your elder. Recipes you record stay in your browser unless you share them.</footer>
+
+<div class="cook" id="cook" hidden role="dialog" aria-modal="true" aria-labelledby="cook-title">
+  <div class="cook-top">
+    <span class="title" id="cook-title"></span>
+    <span class="muted small" id="cook-count"></span>
+    <button class="btn" id="cook-close">Close</button>
+  </div>
+  <div class="progress"><i id="cook-bar"></i></div>
+  <div class="cook-main" id="cook-main"></div>
+  <div class="cook-nav">
+    <button class="btn" id="cook-prev">Back</button>
+    <button class="btn primary" id="cook-next">Next</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+
+<script src="app.js"></script>
+</body>
+</html>
